@@ -87,4 +87,4 @@ async def reg_number(message: Message, state: FSMContext):
 @router.callback_query(F.data == 'catalog')
 async def catalog(callback: CallbackQuery):
     await callback.answer('Закрытие ЗН')
-    await callback.message.edit_text('Выберете ЗН', reply_markup=await kb.inline_zn())
+    await callback.message.edit_text('Выберете ЗН', reply_markup=await kb.inline_zn(callback.from_user.id))

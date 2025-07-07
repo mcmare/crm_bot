@@ -12,4 +12,6 @@ async def set_user(tg_id, name):
 
 async def get_order(tg_id):
     async with async_session() as session:
-        return await session.scalars(select(OrderWork).where(Order.responsible == tg_id))
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        print(user)
+        return await session.scalars(select(OrderWork).where(OrderWork.responsible == user.id))

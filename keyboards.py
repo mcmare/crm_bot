@@ -46,8 +46,9 @@ async def reply_zn():
         keyboard.add(KeyboardButton(text=str(i)))
     return keyboard.adjust(4).as_markup()
 
-async def inline_zn():
-    zn = await get_order(tg_id=Message.from_user.id)
+async def inline_zn(tg_id):
+    tg_id = tg_id
+    zn = await get_order(tg_id)
     keyboard = InlineKeyboardBuilder()
     for i in zn:
         keyboard.add(InlineKeyboardButton(text=str(i.n_order_work), callback_data=f'ZN_{i.n_order_work}'))
