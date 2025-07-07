@@ -38,7 +38,7 @@ class OrderWork(Base):
     # статус ЗН, 1-новый, 2-в работе, 3-принят, 4-отменен
     status: Mapped[int] = mapped_column()
     # список фотографий приложеных к ЗН, список из id по ним можно найти путь к фотографии
-    photos: Mapped[str] = mapped_column(String(1000), default=0)
+    photos: Mapped[str] = mapped_column(String(1000), nullable=True)
     # Ответсвенный за выполнение
     responsible: Mapped[int] = mapped_column(ForeignKey('users.tg_id'))
 

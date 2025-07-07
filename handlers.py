@@ -101,3 +101,9 @@ async def zn(callback: CallbackQuery):
 async def help(callback: CallbackQuery):
     await callback.answer('Помощь')
     await callback.message.edit_text(f'{texts.help}')
+
+# роутер который ловит колбек contacts
+@router.callback_query(F.data == 'contacts')
+async def help(callback: CallbackQuery):
+    await callback.answer('Контакты')
+    await callback.message.edit_text(f'{texts.contacts}')

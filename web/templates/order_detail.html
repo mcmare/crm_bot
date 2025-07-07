@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Закрытие ЗН {{ zn_number }}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .tab-content {
+            padding: 20px 0;
+        }
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .photo-card {
+            position: relative;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .photo-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .photo-card .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .work-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .work-name {
+            flex-grow: 1;
+            padding-right: 15px;
+        }
+        .work-quantity {
+            width: 100px;
+        }
+        .work-actions {
+            width: 50px;
+            text-align: center;
+        }
+        .action-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .status-badge {
+            font-size: 0.9rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        .quantity-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h1 class="h4 mb-0">Заказ-наряд: {{ zn_number }}</h1>
+            </div>
+
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-4" id="orderTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if active_tab == 'info' %}active{% endif %}"
+                                id="info-tab" data-bs-toggle="tab"
+                                data-bs-target="#info" type="button" role="tab"
+                                aria-controls="info" aria-selected="true">
+                            Информация
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if active_tab == 'works' %}active{% endif %}"
+                                id="works-tab" data-bs-toggle="tab"
+                                data-bs-target="#works" type="button" role="tab"
+                                aria-controls="works" aria-selected="false">
+                            Работы
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if active_tab == 'photos' %}active{% endif %}"
+                                id="photos-tab" data-bs-toggle="tab"
+                                data-bs-target="#photos" type="button" role="tab"
+                                aria-controls="photos" aria-selected="false">
+                            Фотографии
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="orderTabContent">
+                    <!-- Информация -->
+                    <div class="tab-pane fade {% if active_tab == 'info' %}show active{% endif %}"
+                         id="info" role="tabpanel" aria-labelledby="info-tab">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Номер заказа:</label>
+                                    <p>{{ order.id_order }}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Ответственный:</label>
+                                    <p>{{ responsible.name if responsible else 'Не назначен' }}</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Статус:</label>
+                                    <p>
+                                        <span class="badge
+                                            {% if order_work.status == 1 %}bg-secondary
+                                            {% elif order_work.status == 2 %}bg-info
+                                            {% elif order_work.status == 3 %}bg-success
+                                            {% elif order_work.status == 4 %}bg-primary
+                                            {% else %}bg-danger
+                                            {% endif %}">
+                                            {{ statuses[order_work.status] }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            {% if order_work.status == 1 %}
+                            <form method="POST" class="mb-3">
+                                <button type="submit" name="action" value="take" class="btn btn-primary">
+                                    <i class="bi bi-play-fill"></i> Взять в работу
+                                </button>
+                            </form>
+                            {% elif order_work.status == 2 %}
+                            <form method="POST" class="mb-3">
+                                <button type="submit" name="action" value="complete" class="btn btn-success">
+                                    <i class="bi bi-check-circle-fill"></i> Завершить
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Работы -->
+                    <div class="tab-pane fade {% if active_tab == 'works' %}show active{% endif %}"
+                         id="works" role="tabpanel" aria-labelledby="works-tab">
+                        <div class="action-buttons">
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addWorkModal">
+                                <i class="bi bi-plus-lg"></i> Добавить работу
+                            </button>
+                        </div>
+
+                        <div class="list-group">
+                            {% for work in works_list %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="work-name">
+                                        <strong>{{ work.name }}</strong>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <form method="POST" action="{{ url_for('update_work', zn_number=zn_number, work_id=work.id) }}"
+                                              class="quantity-form">
+                                            <input type="number" name="quantity" value="{{ work.quantity }}" min="1"
+                                                   class="form-control" style="width: 80px;">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('delete_work', zn_number=zn_number, work_id=work.id) }}" class="ms-2">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-info">
+                                Нет работ для отображения
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if works_list %}
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h5 class="mb-0">Общая сумма работ: <strong>{{ total_sum }} руб.</strong></h5>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Фотографии -->
+                    <div class="tab-pane fade {% if active_tab == 'photos' %}show active{% endif %}"
+                         id="photos" role="tabpanel" aria-labelledby="photos-tab">
+                        <form method="POST" action="{{ url_for('upload_photo', zn_number=zn_number) }}"
+                              enctype="multipart/form-data" class="mb-4">
+                            <div class="input-group">
+                                <input type="file" class="form-control" name="photo" multiple>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-upload"></i> Загрузить
+                                </button>
+                            </div>
+                        </form>
+
+                        {% if photos %}
+                        <div class="photo-grid">
+                            {% for photo in photos %}
+                            <div class="photo-card">
+                                <img src="{{ url_for('uploaded_file', filename=photo) }}" alt="Фото работы">
+                                <div class="delete-btn" onclick="deletePhoto('{{ zn_number }}', '{{ photo }}')">
+                                    <i class="bi bi-x-lg text-danger"></i>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            Нет загруженных фотографий
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для добавления работы -->
+    <div class="modal fade" id="addWorkModal" tabindex="-1" aria-labelledby="addWorkModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addWorkModalLabel">Добавить работу</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('add_work', zn_number=zn_number) }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="workSelect" class="form-label">Выберите работу</label>
+                            <select class="form-select" id="workSelect" name="work_id" required>
+                                <option value="">Выберите работу</option>
+                                {% for work in all_works %}
+                                <option value="{{ work.id }}">{{ work.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="workQuantity" class="form-label">Количество</label>
+                            <input type="number" class="form-control" id="workQuantity"
+                                   name="quantity" min="1" value="1" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Активация вкладки при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Активируем вкладку из параметра URL
+            const tabTrigger = document.querySelector(`[data-bs-target="#{{ active_tab }}"]`);
+            if (tabTrigger) {
+                new bootstrap.Tab(tabTrigger).show();
+            }
+        });
+
+        // Функция для удаления фотографии
+        function deletePhoto(zn_number, filename) {
+            if (confirm('Вы уверены, что хотите удалить эту фотографию?')) {
+                fetch(`/delete_photo/${zn_number}/${filename}`, {
+                    method: 'POST'
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
