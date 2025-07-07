@@ -16,14 +16,15 @@ main = ReplyKeyboardMarkup(keyboard=[
     input_field_placeholder='Выберете пункт меню')
 
 main_callback = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Список ЗН', callback_data='catalog')],
-    [InlineKeyboardButton(text='Корзина', callback_data='basket'), InlineKeyboardButton(text='Контакты', callback_data='contacts')],
+    [InlineKeyboardButton(text='Список ЗН', callback_data='zn')],
+    [InlineKeyboardButton(text='Помощь', callback_data='help'), InlineKeyboardButton(text='Контакты', callback_data='contacts')],
 ])
 
+#DELETE
 #клавиатура запроса номера телефона в виде контакта
-get_user_number = ReplyKeyboardMarkup(keyboard=[
-    [KeyboardButton(text='Ввести номер телефона', request_contact=True)]
-],resize_keyboard=True)
+# get_user_number = ReplyKeyboardMarkup(keyboard=[
+#     [KeyboardButton(text='Ввести номер телефона', request_contact=True)]
+# ],resize_keyboard=True)
 
 # переменная содержит Inline клавиатуру, список в списке, в одном списке одна строка клавиш
 # каждая клавиша, помимо text, должна содержать еще что-то, например url для перехода на страницу,
@@ -51,6 +52,6 @@ async def inline_zn(tg_id):
     zn = await get_order(tg_id)
     keyboard = InlineKeyboardBuilder()
     for i in zn:
-        keyboard.add(InlineKeyboardButton(text=str(i.n_order_work), callback_data=f'ZN_{i.n_order_work}'))
+        keyboard.add(InlineKeyboardButton(text=str(i.n_order_work), web_app=WebAppInfo(url=f'https://google.com/q=ZN_{i.n_order_work}')))
     return keyboard.adjust(4).as_markup()
 
