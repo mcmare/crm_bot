@@ -2,7 +2,7 @@ import os
 import sqlite3
 import uuid
 import json
-from flask import Flask, render_template, request, redirect, url_for, abort, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, abort, send_from_directory, jsonify
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -19,6 +19,10 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+# маршрут для проверки WebApp
+@app.route('/webapp/zn-<zn_number>')
+def webapp_order_detail(zn_number):
+    return redirect(url_for('order_detail', zn_number=zn_number, _external=True))
 
 @app.route('/zn-<zn_number>', methods=['GET', 'POST'])
 def order_detail(zn_number):
@@ -285,6 +289,12 @@ def delete_photo(zn_number, filename):
         ).fetchone()
 
         if photo:
+            # Удаляем файл с диска
+            try:
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            except OSError as e:
+                print(f"Error deleting file: {e}")
+
             # Удаляем фото из таблицы photos
             conn.execute(
                 'DELETE FROM photos WHERE id_photo = ?',
@@ -307,8 +317,13 @@ def delete_photo(zn_number, filename):
                 )
 
             conn.commit()
+
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': True})
     except Exception as e:
         print(f"Error deleting photo: {e}")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         conn.close()
 
